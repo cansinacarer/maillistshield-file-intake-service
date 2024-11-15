@@ -1,5 +1,5 @@
-# Demo data files
-app/data/
+# Temp files
+temp/
 
 # Environment variables
 .env

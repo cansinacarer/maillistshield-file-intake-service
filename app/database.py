@@ -1,16 +1,10 @@
 from decouple import config
 from datetime import datetime, timezone, timedelta
-import pytz
-
-DATABASE_CONNECTION_STRING = config("DATABASE_CONNECTION_STRING")
-
-# Timezone used in this app
-appTimezoneStr = config("TIMEZONE")
-appTimezone = pytz.timezone(appTimezoneStr)
 
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
+from app.config import DATABASE_CONNECTION_STRING, appTimezone
 
 # Create an engine
 engine = create_engine(DATABASE_CONNECTION_STRING)
@@ -62,3 +56,8 @@ def update_job_status(file, **kwargs):
 
 def file_has_a_job_in_db(file):
     return session.query(BatchJobs).filter_by(uploaded_file=file).first() is not None
+
+
+def get_job_status(file):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    return job.status

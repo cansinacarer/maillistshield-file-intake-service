@@ -1,8 +1,5 @@
 import requests
-from decouple import config
-
-# Uptime monitor address
-UPTIME_MONITOR = config("UPTIME_MONITOR")
+from app.config import UPTIME_MONITOR
 
 
 # Send a heartbeat the the uptime monitor
