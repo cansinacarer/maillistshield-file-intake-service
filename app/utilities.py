@@ -16,10 +16,8 @@ def is_file_old_enough_to_delete(item):
     return age_in_seconds > RETENTION_PERIOD_FOR_ORPHAN_FILES
 
 
-def delete_files(keys):
-    objects = []
-    for key in keys:
-        objects.append({"Key": key})
+def delete_file(key):
+    objects = [{"Key": key}]
     try:
         s3.Bucket(S3_BUCKET_NAME).delete_objects(Delete={"Objects": objects})
     except Exception as e:

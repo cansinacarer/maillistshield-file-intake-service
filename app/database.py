@@ -61,3 +61,18 @@ def file_has_a_job_in_db(file):
 def get_job_status(file):
     job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
     return job.status
+
+
+def has_header_row(file):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    return job.header_row == 1
+
+
+def has_email_column(file):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    return job.email_column is not None
+
+
+def get_email_column(file):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    return job.email_column
