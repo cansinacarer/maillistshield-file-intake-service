@@ -33,7 +33,7 @@ class BatchJobs(Base):
     uploaded_file = Column(String(120), nullable=False)
     results_file = Column(String(120), nullable=True)
     completed_length = Column(Integer, nullable=False, default=0)
-    file_length = Column(Integer)
+    row_count = Column(Integer)
     email_column = Column(String(120))
     header_row = Column(Integer, nullable=False)
     source = Column(String(120), nullable=False, default="web")
@@ -115,7 +115,7 @@ def get_email_column(file):
 
 def set_row_count(file, row_count):
     job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
-    job.file_length = row_count
+    job.row_count = row_count
     session.commit()
 
 
