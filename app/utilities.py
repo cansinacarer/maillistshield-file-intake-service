@@ -8,6 +8,16 @@ from app.config import (
 )
 
 
+# Returns the list of newly uploaded files
+def list_files():
+    # Check if there are any new files in the S3 bucket
+    s3_response = s3.meta.client.list_objects_v2(
+        Bucket=S3_BUCKET_NAME, Prefix="validation/uploaded/"
+    )
+
+    return s3_response.get("Contents", [])
+
+
 def is_file_old_enough_to_delete(item):
     last_modified = item["LastModified"].astimezone(appTimezone)
     now = datetime.datetime.now().astimezone(appTimezone)
@@ -29,5 +39,16 @@ def download_file(key_name, local_name):
 
     try:
         s3.Bucket(S3_BUCKET_NAME).download_file(key_name, file_path)
+    except Exception as e:
+        print("Error: ", e)
+
+
+def upload_csv_buffer(csv_buffer, file_name):
+    try:
+        s3.meta.client.put_object(
+            Bucket=S3_BUCKET_NAME,
+            Key="validation/in-progress/" + file_name,
+            Body=csv_buffer.getvalue(),
+        )
     except Exception as e:
         print("Error: ", e)

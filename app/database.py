@@ -1,7 +1,15 @@
 from decouple import config
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    BigInteger,
+    String,
+    DateTime,
+    ForeignKey,
+)
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
 from app.config import DATABASE_CONNECTION_STRING, appTimezone
@@ -18,14 +26,18 @@ class BatchJobs(Base):
     __tablename__ = "BatchJobs"
 
     id = Column(Integer, primary_key=True)
-    uid = Column(String(120), nullable=False, unique=True)
-    # user_id = Column(Integer, ForeignKey("Users.id"), nullable=False)
+    uid = Column(String(120), unique=True)
+    user_id = Column(Integer, ForeignKey("Users.id"))
+    user = relationship("Users", backref="batch_jobs")
+    original_file_name = Column(String(120), nullable=False)
     uploaded_file = Column(String(120), nullable=False)
     results_file = Column(String(120), nullable=True)
-    completed_length = Column(Integer, nullable=False)
-    file_length = Column(Integer, nullable=False)
-    source = Column(String(120), nullable=False)
-    status = Column(String(120), nullable=False)
+    completed_length = Column(Integer, nullable=False, default=0)
+    file_length = Column(Integer)
+    email_column = Column(String(120))
+    header_row = Column(Integer, nullable=False)
+    source = Column(String(120), nullable=False, default="web")
+    status = Column(String(120), nullable=False, default="pending_start")
     uploaded = Column(
         DateTime(),
         nullable=False,
@@ -39,12 +51,29 @@ class BatchJobs(Base):
     result = Column(String(120), nullable=True)
 
 
+class Users(Base):
+    __tablename__ = "Users"
+
+    id = Column(Integer, primary_key=True)
+    credits = Column(BigInteger)
+
+    def save(self):
+        # inject self into db session
+        session.add(self)
+
+        # commit change and save the object
+        session.commit()
+
+        return self
+
+    def deduct_credits(self, amount):
+        self.credits -= amount
+        self.save()
+
+
 # Create a session
 Session = sessionmaker(bind=engine)
 session = Session()
-
-# Query the BatchJobs table
-batch_jobs = session.query(BatchJobs).all()
 
 
 def update_job_status(file, **kwargs):
@@ -63,6 +92,12 @@ def get_job_status(file):
     return job.status
 
 
+def set_job_status(file, status):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    job.status = status
+    session.commit()
+
+
 def has_header_row(file):
     job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
     return job.header_row == 1
@@ -70,9 +105,22 @@ def has_header_row(file):
 
 def has_email_column(file):
     job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
-    return job.email_column is not None
+    return job.email_column != ""
 
 
 def get_email_column(file):
     job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
     return job.email_column
+
+
+def set_row_count(file, row_count):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    job.file_length = row_count
+    session.commit()
+
+
+def get_user_of_file(file):
+    job = session.query(BatchJobs).filter_by(uploaded_file=file).first()
+    user_id = job.user_id
+    user = session.query(Users).filter_by(id=user_id).first()
+    return user
