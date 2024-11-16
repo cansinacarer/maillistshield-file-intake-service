@@ -2,6 +2,9 @@ from decouple import config
 import pytz
 import boto3
 
+# Pause for maintenance
+PAUSE = config("PAUSE", cast=bool)
+
 # S3 bucket name
 S3_BUCKET_NAME = config("S3_BUCKET_NAME")
 

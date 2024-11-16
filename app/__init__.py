@@ -3,14 +3,14 @@ import os
 from io import StringIO
 import pandas as pd
 
-from app.config import POLLING_INTERVAL, s3, S3_BUCKET_NAME
+from app.config import POLLING_INTERVAL, PAUSE
 from app.database import (
     file_has_a_job_in_db,
     get_job_status,
     set_job_status,
     has_header_row,
-    get_email_column,
     has_email_column,
+    get_email_column,
     get_user_of_file,
     set_row_count,
 )
@@ -118,7 +118,18 @@ def process_files(all_files):
 
         # If user declared that the file has multiple columns
         if has_email_column(item["Key"]):
-            df = only_keep_column(df, get_email_column(item["Key"]))
+            if has_header_row(item["Key"]):
+                df = only_keep_column(df, get_email_column(item["Key"]))
+            else:
+                # Get the first value in the column with emails
+                email_column = get_email_column(item["Key"])
+
+                # Find the column name with the first email value
+                # This column name was auto-assigned when we read to df with headers=False
+                column_name = df.columns[df.iloc[0] == email_column][0]
+
+                # Keep the column with this label
+                df = only_keep_column(df, column_name)
 
         # Skip file if user has not declared an email column but there are multiple columns
         if df.shape[1] > 1:
@@ -146,6 +157,7 @@ def process_files(all_files):
         if user.credits < row_count:
             print(f'User does not have enough credits to validate {item["Key"]}')
             set_job_status(item["Key"], "error_insufficient_credits")
+            delete_file(item["Key"])
             continue
 
         # Deduct credits
@@ -165,6 +177,14 @@ def process_files(all_files):
 def main():
     # Main loop
     while True:
+        # If Pause is active, skip everything
+        if PAUSE:
+            print(
+                "The processing is paused, change the environment variable to continue."
+            )
+            time.sleep(5)
+            continue
+
         # Iterations start time
         start_time = time.time()
 
@@ -175,6 +195,7 @@ def main():
         process_files(all_files)
 
         # Send a heartbeat to the uptime monitor
+        print("Processing loop is active.")
         ping_uptime_monitor()
 
         # Iteration end time
