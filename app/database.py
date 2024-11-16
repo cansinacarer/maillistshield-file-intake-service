@@ -31,8 +31,6 @@ class BatchJobs(Base):
     user = relationship("Users", backref="batch_jobs")
     original_file_name = Column(String(120), nullable=False)
     uploaded_file = Column(String(120), nullable=False)
-    results_file = Column(String(120), nullable=True)
-    completed_length = Column(Integer, nullable=False, default=0)
     row_count = Column(Integer)
     email_column = Column(String(120))
     header_row = Column(Integer, nullable=False)
@@ -47,8 +45,6 @@ class BatchJobs(Base):
         DateTime(),
         nullable=True,
     )
-    finished = Column(DateTime(), nullable=True)
-    result = Column(String(120), nullable=True)
 
 
 class Users(Base):
