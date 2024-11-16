@@ -1,6 +1,6 @@
 # Mail List Shield - File Processor
 
-__Important:__ Consider the consequences of running this locally when the remote process is also running. Different env variables and bucket would be safer after launch.
+__Important:__ Consider the consequences of running this locally when the remote process is also running. Different env variables and bucket would be safer after launch. Or at least use the `PAUSE` environment variable on the server.
 
 This is the process that monitors the folder where files are first uploaded (`uploaded`), processes them, then saves the processed copy to the `in_progress` folder.
 
