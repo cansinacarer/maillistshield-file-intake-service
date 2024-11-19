@@ -97,16 +97,18 @@ def process_files(all_files):
                 pass  # There may not be a matching db record, it is fine
             continue
 
-        # Skip file if we find a matching db record
+        # Skip file if we don't find a matching db record
         if not file_has_a_job_in_db(item["Key"]):
-            print(f'We did not find a db record for {item["Key"]}')
+            print(f'{item["Key"]} does not have a db record, skipping it.')
             continue
 
         # Skip file if db says the file is not pending_start
         # It might be because we previously set an error status for it
         # It might be a file just created, but we are seeing it before the database record is created
         if get_job_status(item["Key"]) != "pending_start":
-            print(f'{item["Key"]} has a db record but it is not pending_start')
+            print(
+                f'{item["Key"]} has a db record but it is not file_accepted, skipping it.'
+            )
             continue
 
         df = read_file_into_df(item)
