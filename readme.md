@@ -16,6 +16,15 @@ Based on user declaration, the processed files have:
 
 Excel files are supported as input, but all outputs are converted to csv.
 
+## The Loop
+
+The files are processed in FIFO by the main loop, with the following actions performed in order:
+
+- List files,
+- Process files,
+- List files,
+- ...
+
 ## Batch Job States
 
 - Expected before:
