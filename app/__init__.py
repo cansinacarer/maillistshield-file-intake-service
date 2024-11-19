@@ -13,6 +13,7 @@ from app.database import (
     get_email_column,
     get_user_of_file,
     set_row_count,
+    record_accepted_file,
 )
 from app.utilities import (
     list_files,
@@ -167,6 +168,9 @@ def process_files(all_files):
 
         # Save the processed df to 'in-progress' as the new file
         upload_df_as_csv(df, item["Key"])
+
+        # Save the new key of the accepted_file
+        record_accepted_file(item["Key"])
 
         # Delete the original file
         delete_file(item["Key"])

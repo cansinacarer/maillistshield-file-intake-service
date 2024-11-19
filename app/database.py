@@ -31,6 +31,7 @@ class BatchJobs(Base):
     user = relationship("Users", backref="batch_jobs")
     original_file_name = Column(String(120), nullable=False)
     uploaded_file = Column(String(120), nullable=False)
+    accepted_file = Column(String(), nullable=True)
     row_count = Column(Integer)
     email_column = Column(String(120))
     header_row = Column(Integer, nullable=False)
@@ -120,3 +121,11 @@ def get_user_of_file(file):
     user_id = job.user_id
     user = session.query(Users).filter_by(id=user_id).first()
     return user
+
+
+def record_accepted_file(uploaded_item_key):
+    job = session.query(BatchJobs).filter_by(uploaded_file=uploaded_item_key).first()
+    processed_item_key = uploaded_item_key.split("validation/uploaded/")[-1]
+    processed_item_key = "validation/in-progress/" + processed_item_key
+    job.accepted_file = processed_item_key
+    session.commit()
