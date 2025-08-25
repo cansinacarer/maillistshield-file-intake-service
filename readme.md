@@ -1,4 +1,4 @@
-# Mail List Shield - File Processor
+# Mail List Shield - File Intake Service
 
 __Important:__ Consider the consequences of running this locally when the remote process is also running. Different env variables and bucket would be safer after launch. Or at least use the `PAUSE` environment variable on the server.
 
