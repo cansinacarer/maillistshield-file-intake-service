@@ -201,7 +201,7 @@ def main():
         process_files(all_files)
 
         # Send a heartbeat to the uptime monitor
-        print("Processing loop is active.")
+        print("File intake loop is active.")
         ping_uptime_monitor()
 
         # Iteration end time
