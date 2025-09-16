@@ -22,6 +22,11 @@ UPTIME_MONITOR = config("UPTIME_MONITOR")
 # Database connection
 DATABASE_CONNECTION_STRING = config("DATABASE_CONNECTION_STRING")
 
+# Logging to Loki
+LOKI_USER = config("LOKI_USER")
+LOKI_PASSWORD = config("LOKI_PASSWORD")
+LOKI_HOST = config("LOKI_HOST")
+SERVICE_NAME = config("SERVICE_NAME")
 
 # Timezone used in this app
 appTimezoneStr = config("TIMEZONE")

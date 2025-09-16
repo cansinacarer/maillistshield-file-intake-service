@@ -23,6 +23,7 @@ from app.utilities import (
     upload_csv_buffer,
 )
 from app.uptime import ping_uptime_monitor
+from app.logging import logger
 
 
 def only_keep_column(df, column_name):
@@ -64,7 +65,7 @@ def read_file_into_df(item):
         else:
             df = pd.read_csv(local_temp_file_path, header=None)
     else:
-        print(f"Unexpected file extension: {file_extension}")
+        logger.error(f"Unexpected file extension: {file_extension}")
         return None
 
     # Delete the locally downloaded file after reading into df
@@ -90,7 +91,7 @@ def process_files(all_files):
         # If the file has been here for a long time with no matching db record
         # This should also clear the errored out files
         if is_file_old_enough_to_delete(item):
-            print(f'Deleting {item["Key"]} because it is too old')
+            logger.debug(f'Deleting {item["Key"]} because it is too old')
             delete_file(item["Key"])
             try:
                 set_job_status(item["Key"], "error_too_old")
@@ -100,14 +101,14 @@ def process_files(all_files):
 
         # Skip file if we don't find a matching db record
         if not file_has_a_job_in_db(item["Key"]):
-            print(f'{item["Key"]} does not have a db record, skipping it.')
+            logger.debug(f'{item["Key"]} does not have a db record, skipping it.')
             continue
 
         # Skip file if db says the file is not pending_start
         # It might be because we previously set an error status for it
         # It might be a file just created, but we are seeing it before the database record is created
         if get_job_status(item["Key"]) != "pending_start":
-            print(
+            logger.debug(
                 f'{item["Key"]} has a db record but it is not file_accepted, skipping it.'
             )
             continue
@@ -116,7 +117,7 @@ def process_files(all_files):
 
         # If read_file_into_df returned None
         if df is None:
-            print(f'We could not load {item["Key"]} into a df')
+            logger.error(f'We could not load {item["Key"]} into a df')
             set_job_status(item["Key"], "error_df")
 
         # If user declared that the file has multiple columns
@@ -136,7 +137,9 @@ def process_files(all_files):
 
         # Skip file if user has not declared an email column but there are multiple columns
         if df.shape[1] > 1:
-            print(f'Column count doesn\'t match user declaration for {item["Key"]}')
+            logger.error(
+                f'Column count doesn\'t match user declaration for {item["Key"]}'
+            )
             set_job_status(item["Key"], "error_column_count")
             continue
 
@@ -158,7 +161,7 @@ def process_files(all_files):
         # If the user does not have enough credits, error out
         user = get_user_of_file(item["Key"])
         if user.credits < row_count:
-            print(f'User does not have enough credits to validate {item["Key"]}')
+            logger.info(f'User does not have enough credits to validate {item["Key"]}')
             set_job_status(item["Key"], "error_insufficient_credits")
             delete_file(item["Key"])
             continue
@@ -176,7 +179,7 @@ def process_files(all_files):
         delete_file(item["Key"])
 
         # Update job status
-        print(f'File {item["Key"]} has been processed successfully.')
+        logger.info(f'File {item["Key"]} has been processed successfully.')
         set_job_status(item["Key"], "file_accepted")
 
 
@@ -185,8 +188,8 @@ def main():
     while True:
         # If Pause is active, skip everything
         if PAUSE:
-            print(
-                "The processing is paused, change the environment variable to continue."
+            logger.info(
+                "The processing is paused, change the environment variable `PAUSE` to continue."
             )
             time.sleep(5)
             continue
@@ -201,7 +204,7 @@ def main():
         process_files(all_files)
 
         # Send a heartbeat to the uptime monitor
-        print("File intake loop is active.")
+        logger.debug("File intake loop is active.")
         ping_uptime_monitor()
 
         # Iteration end time

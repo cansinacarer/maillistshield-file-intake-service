@@ -6,6 +6,7 @@ from app.config import (
     S3_BUCKET_NAME,
     s3,
 )
+from app.logging import logger
 
 
 # Returns the list of newly uploaded files
@@ -31,7 +32,7 @@ def delete_file(key):
     try:
         s3.Bucket(S3_BUCKET_NAME).delete_objects(Delete={"Objects": objects})
     except Exception as e:
-        print("Error: ", e)
+        logger.error("Error while deleting file: ", e)
 
 
 def download_file(key_name, local_name):
@@ -40,7 +41,7 @@ def download_file(key_name, local_name):
     try:
         s3.Bucket(S3_BUCKET_NAME).download_file(key_name, file_path)
     except Exception as e:
-        print("Error: ", e)
+        logger.error("Error while downloading file: ", e)
 
 
 def upload_csv_buffer(csv_buffer, file_name):
@@ -51,4 +52,4 @@ def upload_csv_buffer(csv_buffer, file_name):
             Body=csv_buffer.getvalue(),
         )
     except Exception as e:
-        print("Error: ", e)
+        logger.error("Error while uploading file: ", e)
