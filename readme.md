@@ -36,3 +36,7 @@ The files are processed in FIFO by the main loop, with the following actions per
   - `error_insufficient_credits` :  User didn't have enough credits to process the file.
 - Success state:
   - `file_accepted`
+
+---
+
+See the [main repository](https://github.com/cansinacarer/maillistshield-com) for a complete list of other microservices.
