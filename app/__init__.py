@@ -189,9 +189,9 @@ def main():
         # If Pause is active, skip everything
         if PAUSE:
             logger.info(
-                "The processing is paused, change the environment variable `PAUSE` to continue."
+                "File intake service is paused, change the environment variable `PAUSE` to resume it."
             )
-            time.sleep(5)
+            time.sleep(POLLING_INTERVAL)
             continue
 
         # Iterations start time
