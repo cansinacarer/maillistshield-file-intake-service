@@ -15,7 +15,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from app.config import DATABASE_CONNECTION_STRING, appTimezone
 
 # Create an engine
-engine = create_engine(DATABASE_CONNECTION_STRING)
+engine = create_engine(DATABASE_CONNECTION_STRING, pool_pre_ping=True)
 
 # Define a base class for declarative class definitions
 Base = declarative_base()
