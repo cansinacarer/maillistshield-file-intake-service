@@ -1,18 +1,16 @@
 # Mail List Shield - File Intake Service
 
-__Important:__ Consider the consequences of running this locally when the remote process is also running. Different env variables and bucket would be safer after launch. Or at least use the `PAUSE` environment variable on the server.
+This is the process that monitors the folder where files are first uploaded (`uploaded`), processes them, 
+This microservice runs a monitoring loop to check the `/validation/uploaded` directory on the S3 bucket and the `Jobs` table in the database for matching job records. 
 
-This is the process that monitors the folder where files are first uploaded (`uploaded`), processes them, then saves the processed copy to the `in_progress` folder.
+When a new file and a corresponding job is found, this service performs the following tasks:
 
-Based on user declaration, the processed files have:
-
-- header row variability handled,
-- all except email column removed,
-- empty rows removed,
-- TODO: duplicates not removed,
-- the email column named as "Email",
-- rows counted and recorded to db,
-- credits deducted.
+- Remove all columns except email,
+- Remove empty rows,
+- Rename the email column as "Email",
+- Count the rows and record it into the job record in the database,
+- Deduct credits based on the record count in the cleaned up file,
+- Create a standardized version of the file in `/validation/in-progress` in the S3 bucket.
 
 Excel files are supported as input, but all outputs are converted to csv.
 
@@ -25,6 +23,8 @@ The files are processed in FIFO by the main loop, with the following actions per
 - List files,
 - ...
 
+This loop can be paused by setting an environment variable: `PAUSE=True`.
+
 ## Batch Job States
 
 - Expected before:
@@ -36,6 +36,10 @@ The files are processed in FIFO by the main loop, with the following actions per
   - `error_insufficient_credits` :  User didn't have enough credits to process the file.
 - Success state:
   - `file_accepted`
+
+## Clean up of orphan files
+
+If a file is found but a corresponding job is not found, there is a retention period to allow for delays in database update. This retention period is declared in seconds with the environment variable `RETENTION_PERIOD_FOR_ORPHAN_FILES`. If there is no job record found in the database for a file found on the S3 bucket at the end of the retention period, the file is deleted.
 
 ---
 
